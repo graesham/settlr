@@ -52,7 +52,7 @@ router.post('/send-otp', async (req, res) => {
       // Dev mode - log OTP to console
       console.log(`[DEV] OTP for ${phone}: ${code}`);
     }
-    res.json({ success: true, message: 'OTP sent', dev_code: process.env.NODE_ENV !== 'production' ? code : undefined });
+    res.json({ success: true, message: 'OTP sent', dev_code: code }); // TODO: remove dev_code before public launch
   } catch (err) {
     console.error('Twilio error:', err.message);
     res.status(500).json({ error: 'Failed to send OTP' });
