@@ -196,6 +196,13 @@ export default function Dashboard() {
             color: '#fff', border: '1.5px solid rgba(255,255,255,0.3)', borderRadius: 10,
             fontWeight: 600, cursor: 'pointer', fontSize: '0.82rem',
           }}>Upgrade</button>
+          {user?.phone === '+14698889968' && (
+            <button onClick={() => navigate('/admin')} style={{
+              flex: 1, padding: '0.65rem 0', background: 'rgba(0,0,0,0.3)',
+              color: '#fff', border: '1.5px solid rgba(255,255,255,0.2)', borderRadius: 10,
+              fontWeight: 600, cursor: 'pointer', fontSize: '0.82rem',
+            }}>🛡️</button>
+          )}
         </div>
       </div>
 

@@ -56,6 +56,7 @@ export const api = {
   getPlatformAnalytics: () => request('/analytics/platform'),
   getMyAnalytics: () => request('/analytics/me'),
   getMyLoans: () => request('/analytics/my-loans'),
+  getAdminData: () => request('/analytics/admin'),
 
   // Profile
   getProfile: (phone) => request(`/profile/${encodeURIComponent(phone)}`),

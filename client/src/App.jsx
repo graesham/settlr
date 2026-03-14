@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import NewLoan from './pages/NewLoan';
 import LoanDetail from './pages/LoanDetail';
 import Analytics from './pages/Analytics';
+import Admin from './pages/Admin';
 import Upgrade from './pages/Upgrade';
 import Profile from './pages/Profile';
 import Onboarding from './components/Onboarding';
@@ -69,6 +70,7 @@ export default function App() {
             <Route path="/loan/:id" element={<LoanDetail />} />
             <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
             <Route path="/upgrade" element={<PrivateRoute><Upgrade /></PrivateRoute>} />
+            <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
             <Route path="/profile/:phone" element={<Profile />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
