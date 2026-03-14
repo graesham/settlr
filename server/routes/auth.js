@@ -11,6 +11,14 @@ function getClient() {
   return null;
 }
 
+// GET /auth/check-user?phone=...
+router.get('/check-user', (req, res) => {
+  const phone = req.query.phone ? normalizePhone(req.query.phone) : null;
+  if (!phone) return res.status(400).json({ error: 'Phone required' });
+  const user = db.prepare('SELECT id, name FROM users WHERE phone = ?').get(phone);
+  res.json({ exists: !!user, name: user?.name || '' });
+});
+
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
