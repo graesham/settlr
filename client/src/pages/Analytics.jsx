@@ -110,13 +110,19 @@ export default function Analytics() {
   const navigate = useNavigate();
   const [me, setMe] = useState(null);
   const [myLoans, setMyLoans] = useState(null);
+  const [platform, setPlatform] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([api.getMyAnalytics(), api.getMyLoans()])
-      .then(([stats, loans]) => { setMe(stats); setMyLoans(loans); })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.all([
+      api.getMyAnalytics(),
+      api.getMyLoans(),
+      api.getPlatformAnalytics().catch(() => null),
+    ]).then(([stats, loans, plat]) => {
+      setMe(stats);
+      setMyLoans(loans);
+      setPlatform(plat);
+    }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   const totalOwedToMe = myLoans?.owedToMe
@@ -234,6 +240,31 @@ export default function Analytics() {
               ))
             )}
           </div>
+
+          {/* Platform stats — admin only */}
+          {platform && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: '1rem', color: '#1a1a2e', marginBottom: '0.75rem' }}>
+                <span style={{ background: '#ede9fe', color: '#5b21b6', borderRadius: 8, padding: '2px 8px', fontSize: '0.8rem' }}>🛡️ Admin · Platform Stats</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {[
+                  { label: 'Total Loans', value: platform.totalLoans, sub: 'All time', g: 'linear-gradient(135deg, #667eea, #764ba2)' },
+                  { label: 'Total Users', value: platform.totalUsers, sub: 'Registered', g: 'linear-gradient(135deg, #2563eb, #1d4ed8)' },
+                  { label: 'Total Volume', value: fmt(platform.totalVolume), sub: 'Tracked', g: 'linear-gradient(135deg, #16a34a, #15803d)' },
+                  { label: 'Recovery Rate', value: `${platform.recoveryRate}%`, sub: 'Paid back', g: 'linear-gradient(135deg, #f59e0b, #d97706)' },
+                  { label: 'Avg Loan', value: fmt(platform.avgLoanAmount), g: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' },
+                  { label: 'Active Loans', value: platform.activeLoans, sub: 'Open', g: 'linear-gradient(135deg, #dc2626, #b91c1c)' },
+                ].map(({ label, value, sub, g }) => (
+                  <div key={label} style={{ background: g, borderRadius: 14, padding: '1rem', color: '#fff' }}>
+                    <div style={{ fontSize: '0.7rem', opacity: 0.85, marginBottom: 4, textTransform: 'uppercase' }}>{label}</div>
+                    <div style={{ fontSize: '1.6rem', fontWeight: 900, lineHeight: 1 }}>{value}</div>
+                    {sub && <div style={{ fontSize: '0.7rem', opacity: 0.75, marginTop: 4 }}>{sub}</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Personal stats */}
           {me && (
