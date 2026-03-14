@@ -3,6 +3,12 @@ const router = express.Router();
 const db = require('../db');
 const jwt = require('jsonwebtoken');
 
+function phonesMatch(a, b) {
+  if (!a || !b) return false;
+  const digits = s => s.replace(/\D/g, '');
+  return digits(a) === digits(b);
+}
+
 function optionalAuth(req, res, next) {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -19,7 +25,7 @@ router.get('/platform', optionalAuth, (req, res) => {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
   if (adminPhone) {
     const user = db.prepare('SELECT phone FROM users WHERE id = ?').get(req.user.userId);
-    if (!user || user.phone !== adminPhone) return res.status(403).json({ error: 'Forbidden' });
+    if (!user || !phonesMatch(user.phone, adminPhone)) return res.status(403).json({ error: 'Forbidden' });
   }
 
   const totalLoans = db.prepare('SELECT COUNT(*) as c FROM loans').get().c;
@@ -114,7 +120,7 @@ router.get('/admin', optionalAuth, (req, res) => {
   const adminPhone = process.env.ADMIN_PHONE;
   if (adminPhone) {
     const user = db.prepare('SELECT phone FROM users WHERE id = ?').get(req.user.userId);
-    if (!user || user.phone !== adminPhone) return res.status(403).json({ error: 'Forbidden' });
+    if (!user || !phonesMatch(user.phone, adminPhone)) return res.status(403).json({ error: 'Forbidden' });
   }
 
   // Recent signups
