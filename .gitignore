@@ -1,0 +1,18 @@
+node_modules/
+server/node_modules/
+client/node_modules/
+
+# Database
+server/*.db
+server/*.db-shm
+server/*.db-wal
+
+# Environment (contains secrets)
+server/.env
+client/.env
+
+# Build output
+client/dist/
+
+# OS
+.DS_Store

@@ -1,0 +1,10 @@
+{
+  "name": "loanpal",
+  "version": "1.0.0",
+  "scripts": {
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "setup": "cp server/.env.example server/.env && echo 'Copied .env.example to server/.env — edit it with your credentials'"
+  }
+}
