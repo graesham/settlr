@@ -15,10 +15,19 @@ function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+function normalizePhone(raw) {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+  if (raw.startsWith('+')) return raw;
+  return `+${digits}`;
+}
+
 // POST /auth/send-otp
 router.post('/send-otp', async (req, res) => {
-  const { phone, name } = req.body;
-  if (!phone) return res.status(400).json({ error: 'Phone number required' });
+  const { phone: rawPhone, name } = req.body;
+  if (!rawPhone) return res.status(400).json({ error: 'Phone number required' });
+  const phone = normalizePhone(rawPhone);
 
   const code = generateOTP();
   const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min
@@ -52,7 +61,8 @@ router.post('/send-otp', async (req, res) => {
 
 // POST /auth/verify-otp
 router.post('/verify-otp', (req, res) => {
-  const { phone, code, name } = req.body;
+  const { phone: rawPhone, code, name } = req.body;
+  const phone = rawPhone ? normalizePhone(rawPhone) : rawPhone;
   if (!phone || !code) return res.status(400).json({ error: 'Phone and code required' });
 
   const otp = db.prepare('SELECT * FROM otps WHERE phone = ? AND used = 0 ORDER BY id DESC LIMIT 1').get(phone);
