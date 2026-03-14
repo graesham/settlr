@@ -13,8 +13,15 @@ function optionalAuth(req, res, next) {
   next();
 }
 
-// GET /analytics/platform — public stats
-router.get('/platform', (req, res) => {
+// GET /analytics/platform — admin only
+router.get('/platform', optionalAuth, (req, res) => {
+  const adminPhone = process.env.ADMIN_PHONE;
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+  if (adminPhone) {
+    const user = db.prepare('SELECT phone FROM users WHERE id = ?').get(req.user.userId);
+    if (!user || user.phone !== adminPhone) return res.status(403).json({ error: 'Forbidden' });
+  }
+
   const totalLoans = db.prepare('SELECT COUNT(*) as c FROM loans').get().c;
   const totalUsers = db.prepare('SELECT COUNT(*) as c FROM users').get().c;
   const volumeRow = db.prepare("SELECT COALESCE(SUM(amount), 0) as v FROM loans WHERE status != 'declined'").get();
@@ -69,6 +76,36 @@ router.get('/me', optionalAuth, (req, res) => {
     latePayments,
     avgLoanSize,
   });
+});
+
+// GET /analytics/my-loans — detailed breakdown with names
+router.get('/my-loans', optionalAuth, (req, res) => {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+  const userId = req.user.userId;
+
+  const owedToMe = db.prepare(`
+    SELECT l.id, l.amount, l.status, l.due_date, l.note, l.created_at,
+      COALESCE(b.name, l.borrower_phone) as person_name,
+      COALESCE(b.phone, l.borrower_phone) as person_phone,
+      COALESCE((SELECT SUM(p.amount) FROM payments p WHERE p.loan_id = l.id), 0) as paid_amount
+    FROM loans l
+    LEFT JOIN users b ON l.borrower_id = b.id
+    WHERE l.lender_id = ? AND l.status != 'declined'
+    ORDER BY l.status ASC, l.due_date ASC
+  `).all(userId);
+
+  const iOwe = db.prepare(`
+    SELECT l.id, l.amount, l.status, l.due_date, l.note, l.created_at,
+      COALESCE(u.name, u.phone) as person_name,
+      u.phone as person_phone,
+      COALESCE((SELECT SUM(p.amount) FROM payments p WHERE p.loan_id = l.id), 0) as paid_amount
+    FROM loans l
+    LEFT JOIN users u ON l.lender_id = u.id
+    WHERE l.borrower_id = ? AND l.status != 'declined'
+    ORDER BY l.status ASC, l.due_date ASC
+  `).all(userId);
+
+  res.json({ owedToMe, iOwe });
 });
 
 module.exports = router;

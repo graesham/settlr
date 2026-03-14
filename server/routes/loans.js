@@ -20,6 +20,15 @@ async function sendSMS(to, message) {
   }
 }
 
+function normalizePhone(raw) {
+  if (!raw) return raw;
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+  if (raw.startsWith('+')) return raw;
+  return `+${digits}`;
+}
+
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 }
@@ -54,7 +63,8 @@ router.get('/', (req, res) => {
 
 // POST /loans - create a new loan request (lender_created)
 router.post('/', async (req, res) => {
-  const { borrower_phone, amount, note, due_date } = req.body;
+  const { borrower_phone: rawBorrowerPhone, amount, note, due_date } = req.body;
+  const borrower_phone = normalizePhone(rawBorrowerPhone);
   const lenderId = req.user.userId;
 
   if (!borrower_phone || !amount || !due_date) {
@@ -111,7 +121,8 @@ router.post('/', async (req, res) => {
 
 // POST /loans/request — borrower creates a loan request to a lender
 router.post('/request', async (req, res) => {
-  const { lender_phone, amount, note, due_date } = req.body;
+  const { lender_phone: rawLenderPhone, amount, note, due_date } = req.body;
+  const lender_phone = normalizePhone(rawLenderPhone);
   const borrowerId = req.user.userId;
 
   if (!lender_phone || !amount || !due_date) {
